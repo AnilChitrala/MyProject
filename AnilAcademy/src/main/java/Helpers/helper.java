@@ -1,49 +1,60 @@
 package Helpers;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
 
 import java.io.FileInputStream;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class helper {
-    public WebDriver wd;
     Properties prop = new Properties();
+    private WebDriver driver;
+    private Logger log;
+
+    public helper(WebDriver driver){
+        this.driver=driver;
+    }
 
     public WebDriver getWebDriver() {
         try {
             FileInputStream fis = new FileInputStream("src/test/resources/ObjectRepository/File.properties");
             prop.load(fis);
             String browserName = prop.getProperty("browser");
-            System.out.println(browserName);
-            if(browserName.equalsIgnoreCase(prop.getProperty("browser")))
-            {
+            if (browserName.equalsIgnoreCase("Chrome")) {
                 System.setProperty("webdriver.chrome.driver", "src/test/resources/Drivers/chromedriver.exe");
-                wd = new ChromeDriver();
+                ChromeOptions options = new ChromeOptions();
+                options.addArguments("disable-infobars", "--test-type", "--disable-extensions", "--disable-notifications", "enable-automation",
+                        "--disable-popup-blocking", "start-maximized");
+                driver = new ChromeDriver(options);
+            }else if(browserName.equalsIgnoreCase("edge")){
+                System.setProperty("webdriver.edge.driver", "src/test/resources/Drivers/msedgedriver.exe");
+                driver = new EdgeDriver();
             }
-            wd.manage().window().maximize();
-            String implicitWaitTime=prop.getProperty("implicitWait");
-            wd.manage().timeouts().implicitlyWait(Integer.parseInt(implicitWaitTime),TimeUnit.SECONDS);
+            driver.manage().window().maximize();
+            String implicitWaitTime = prop.getProperty("implicitWait");
+            driver.manage().timeouts().implicitlyWait(Integer.parseInt(implicitWaitTime), TimeUnit.SECONDS);
         } catch (Exception E) {
             System.out.println(E.getMessage());
         }
-        return wd;
-    }
-    public void afterScenario(WebDriver wd){
-        wd.close();
-        wd.quit();
-    }
-    public void launchBrowser(WebDriver wd){
-        wd.get(prop.getProperty("url"));
+        return driver;
     }
 
-    public void clickWebElement(WebDriver wd,String keyValue){
-        wd.findElement(By.xpath(keyValue)).click();
+    public void afterScenario() {
+        driver.close();
+        driver.quit();
+    }
+
+    public void launchBrowser() {
+        driver.get(prop.getProperty("url"));
+    }
+
+    public void clickWebElement(WebDriver driver, String keyValue) {
+        driver.findElement(By.xpath(keyValue)).click();
     }
 }
